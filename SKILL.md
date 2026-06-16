@@ -3,7 +3,7 @@ name: grompt
 description: Use when any agent or system needs to create, rewrite, improve, or generate an image prompt by analyzing a user's image task against the freestylefly/awesome-gpt-image-2 prompt case library, selecting 3-5 repository-backed reference prompts, extracting reusable visual genes and prompt structure, synthesizing a task-specific GPT Image 2 prompt, then generating the image with an available image-generation provider.
 ---
 
-# /Grompt
+# Grompt
 
 Use the awesome-gpt-image-2 prompt corpus as evidence, not decoration. The skill turns a user task into a reference-backed prompt, then hands it to an image generation skill.
 

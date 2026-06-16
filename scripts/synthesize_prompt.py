@@ -208,7 +208,7 @@ def synthesize_prompt(analysis: dict[str, Any], references: list[dict[str, Any]]
 
 def render_markdown(data: dict[str, Any]) -> str:
     lines = [
-        "# /Grompt Synthesis",
+        "# Grompt Synthesis",
         "",
         "## Analysis",
         f"- Use case: {data['analysis']['use_case']}",

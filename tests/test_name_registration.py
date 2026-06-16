@@ -13,7 +13,7 @@ class NameRegistrationTest(unittest.TestCase):
         openai = (ROOT / "agents" / "openai.yaml").read_text()
 
         self.assertIn("name: grompt", skill)
-        self.assertIn('display_name: "/Grompt"', openai)
+        self.assertIn('display_name: "Grompt"', openai)
         self.assertIn("$grompt", openai)
         self.assertNotIn(OLD_REGISTERED_NAME, skill)
         self.assertNotIn(OLD_DISPLAY_NAME, skill)

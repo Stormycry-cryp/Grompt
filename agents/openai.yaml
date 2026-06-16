@@ -1,4 +1,4 @@
 interface:
-  display_name: "/Grompt"
+  display_name: "Grompt"
   short_description: "Agent-agnostic reference-backed prompt builder."
   default_prompt: "Use $grompt to check image generation provider availability, synthesize a reference-backed GPT Image 2 prompt, and generate the image or return prompt-only output."
