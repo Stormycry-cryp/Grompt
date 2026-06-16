@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+references/user_prompt_library.json
+*.skill.zip
+tmp/
+work/
