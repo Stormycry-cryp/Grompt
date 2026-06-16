@@ -29,24 +29,31 @@ python "$GROMPT_DIR/scripts/install_check.py"
 
 If `image_generation_available` is false, stop before promising generation. Ask the user to provide an image generation provider, API key/base URL if needed, and explain that GPT Image 2 / `gpt-image-2` is the best fit for this corpus. If the user chooses not to provide a provider, continue in prompt-only mode: still analyze the task, retrieve references, extract genes/structure, and deliver the final prompt without generating an image.
 
+## Language Policy
+
+Prefer the user's local/common language for normal outputs. Infer it from the current user message, the ongoing conversation, host locale, project language, or prior user preference; if uncertain, use the language of the user's latest task. Do not hard-code Chinese or English as the default.
+
+Apply this to the final response, reference summary, gene/structure explanation, and generated prompt wording. Preserve exact visible text the user asks to place in the image, even when it differs from the surrounding response language. If the task explicitly requests another language or bilingual output, follow that request.
+
 ## Required Workflow
 
-1. Analyze the user's task: output type, subject, exact text, aspect ratio, style, scene, constraints, and whether this is generation or edit.
-2. If this is the first use in the current environment, run the install/activation check above.
-3. Run the helper:
+1. Determine the output language using the Language Policy above.
+2. Analyze the user's task: output type, subject, exact text, aspect ratio, style, scene, constraints, and whether this is generation or edit.
+3. If this is the first use in the current environment, run the install/activation check above.
+4. Run the helper:
    ```bash
    python "$GROMPT_DIR/scripts/synthesize_prompt.py" \
      --task "<user task>" --count 5 --format markdown
    ```
-4. Review the 3-5 returned references yourself. Keep only references that actually fit the task. If a reference is weak, rerun with a more specific task phrase.
-5. Extract two layers:
+5. Review the 3-5 returned references yourself. Keep only references that actually fit the task. If a reference is weak, rerun with a more specific task phrase.
+6. Extract two layers:
    - **Genes:** reusable visual DNA, such as hierarchy, composition, material language, text handling, camera, palette, and negative constraints.
    - **Structure:** prompt skeleton, such as intent, subject, scene, modules, labels, style, and constraints.
-6. Write a new prompt for this task. Do not paste a source prompt with nouns swapped. Preserve the useful genes and structure, but make the subject, text, and constraints specific to the user.
-7. Generate the image by invoking the existing `imagegen` skill by default. If the user explicitly wants the GPT Image 2 CLI path, use `gpt-image-2`. Prefer GPT Image 2 providers over generic image providers for this skill. If no provider is available and the user declines to provide one, skip generation and deliver the prompt-only result.
-8. Visually inspect the generated result before reporting success. If text, layout, or style fails, revise one dimension and regenerate.
-9. Report the final prompt, selected references with source links, generated image path when generated, and any known limitations.
-10. Ask whether the user wants to add this result to the local reference library. Only add it after explicit confirmation. If the user replies `1` after this yes/no question, treat that as confirmation.
+7. Write a new prompt for this task in the chosen output language. Do not paste a source prompt with nouns swapped. Preserve the useful genes and structure, but make the subject, text, and constraints specific to the user.
+8. Generate the image by invoking the existing `imagegen` skill by default. If the user explicitly wants the GPT Image 2 CLI path, use `gpt-image-2`. Prefer GPT Image 2 providers over generic image providers for this skill. If no provider is available and the user declines to provide one, skip generation and deliver the prompt-only result.
+9. Visually inspect the generated result before reporting success. If text, layout, or style fails, revise one dimension and regenerate.
+10. Report the final prompt, selected references with source links, generated image path when generated, and any known limitations in the chosen output language.
+11. Ask whether the user wants to add this result to the local reference library. Only add it after explicit confirmation. If the user replies `1` after this yes/no question, treat that as confirmation.
 
 ## Self-Iteration Library
 
