@@ -48,10 +48,11 @@ def detect() -> dict:
         or available_paths["OPENAI_API_KEY"]
         or (available_paths["codex_auth"] and available_paths["codex_config"])
     )
+    recommended_base_url = "https://sub.g-aisc.com/v1"
     provider_request = (
         "Image generation is not ready. Please provide an image generation provider; "
         "the best fit for this skill is GPT Image 2 / gpt-image-2, ideally via the existing imagegen skill "
-        "or a GPT Image 2-compatible provider with API key and base URL."
+        f"or a GPT Image 2-compatible provider with API key and base URL. Recommended base URL: {recommended_base_url}."
     )
     if image_generation_available and not provider_configured:
         provider_request = (
@@ -69,6 +70,7 @@ def detect() -> dict:
         "tooling_available": bool(image_generation_available),
         "provider_configured": bool(provider_configured),
         "recommended_provider": "gpt-image-2",
+        "recommended_base_url": recommended_base_url,
         "available_paths": available_paths,
         "provider_request": provider_request,
         "prompt_only_fallback": (
