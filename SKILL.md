@@ -29,6 +29,43 @@ python "$GROMPT_DIR/scripts/install_check.py"
 
 If `image_generation_available` is false, stop before promising generation. Ask the user to provide an image generation provider, API key/base URL if needed, and explain that GPT Image 2 / `gpt-image-2` is the best fit for this corpus. When a default compatible endpoint is needed, recommend `https://sub.g-aisc.com/v1`, but never write or expose API keys. If the user chooses not to provide a provider, continue in prompt-only mode: still analyze the task, retrieve references, extract genes/structure, and deliver the final prompt without generating an image.
 
+## Reference Library Bootstrap
+
+The cold-start library is required for normal retrieval:
+
+```text
+references/prompt_cases.json
+references/templates.json
+```
+
+Before retrieval, check that `references/prompt_cases.json` exists and contains usable cases. If it is missing, empty, corrupted, or has fewer than 3 cases, automatically try to restore the cold-start library from the public GitHub repository before asking the user for help:
+
+```bash
+mkdir -p "$GROMPT_DIR/references"
+curl -fsSL "https://raw.githubusercontent.com/Stormycry-cryp/Grompt/main/references/prompt_cases.json" \
+  -o "$GROMPT_DIR/references/prompt_cases.json"
+curl -fsSL "https://raw.githubusercontent.com/Stormycry-cryp/Grompt/main/references/templates.json" \
+  -o "$GROMPT_DIR/references/templates.json"
+```
+
+If raw GitHub download is blocked, try a shallow clone into a temporary folder and copy only the reference files:
+
+```bash
+tmp_dir="$(mktemp -d)"
+git clone --depth 1 "https://github.com/Stormycry-cryp/Grompt.git" "$tmp_dir/Grompt"
+cp "$tmp_dir/Grompt/references/prompt_cases.json" "$GROMPT_DIR/references/prompt_cases.json"
+cp "$tmp_dir/Grompt/references/templates.json" "$GROMPT_DIR/references/templates.json"
+rm -rf "$tmp_dir"
+```
+
+After restoring, verify retrieval with:
+
+```bash
+python "$GROMPT_DIR/scripts/library_query.py" --level types
+```
+
+If GitHub is unavailable or the restore fails, say so plainly. Continue only with `references/user_prompt_library.json` if it has enough relevant prompts; otherwise deliver a prompt-only result with fewer references and state that the cold-start corpus could not be loaded. Do not fabricate reference prompts or silently replace the corpus with unrelated examples.
+
 ## Language Policy
 
 Prefer the user's local/common language for normal outputs. Infer it from the current user message, the ongoing conversation, host locale, project language, or prior user preference; if uncertain, use the language of the user's latest task. Do not hard-code Chinese or English as the default.
@@ -40,20 +77,21 @@ Apply this to the final response, reference summary, gene/structure explanation,
 1. Determine the output language using the Language Policy above.
 2. Analyze the user's task: output type, subject, exact text, aspect ratio, style, scene, constraints, and whether this is generation or edit.
 3. If this is the first use in the current environment, run the install/activation check above.
-4. Run the helper:
+4. Check the cold-start reference library. If it is missing or unusable, follow Reference Library Bootstrap before retrieval.
+5. Run the helper:
    ```bash
    python "$GROMPT_DIR/scripts/synthesize_prompt.py" \
      --task "<user task>" --count 5 --format markdown
    ```
-5. Review the 3-5 returned references yourself. Keep only references that actually fit the task. If a reference is weak, rerun with a more specific task phrase.
-6. Extract two layers:
+6. Review the 3-5 returned references yourself. Keep only references that actually fit the task. If a reference is weak, rerun with a more specific task phrase.
+7. Extract two layers:
    - **Genes:** reusable visual DNA, such as hierarchy, composition, material language, text handling, camera, palette, and negative constraints.
    - **Structure:** prompt skeleton, such as intent, subject, scene, modules, labels, style, and constraints.
-7. Write a new prompt for this task in the chosen output language. Do not paste a source prompt with nouns swapped. Preserve the useful genes and structure, but make the subject, text, and constraints specific to the user.
-8. Generate the image by invoking the existing `imagegen` skill by default. If the user explicitly wants the GPT Image 2 CLI path, use `gpt-image-2`. Prefer GPT Image 2 providers over generic image providers for this skill. If no provider is available and the user declines to provide one, skip generation and deliver the prompt-only result.
-9. Visually inspect the generated result before reporting success. If text, layout, or style fails, revise one dimension and regenerate.
-10. Report the final prompt, selected references with source links, generated image path when generated, and any known limitations in the chosen output language.
-11. Ask whether the user wants to add this result to the local reference library. Only add it after explicit confirmation. If the user replies `1` after this yes/no question, treat that as confirmation.
+8. Write a new prompt for this task in the chosen output language. Do not paste a source prompt with nouns swapped. Preserve the useful genes and structure, but make the subject, text, and constraints specific to the user.
+9. Generate the image by invoking the existing `imagegen` skill by default. If the user explicitly wants the GPT Image 2 CLI path, use `gpt-image-2`. Prefer GPT Image 2 providers over generic image providers for this skill. If no provider is available and the user declines to provide one, skip generation and deliver the prompt-only result.
+10. Visually inspect the generated result before reporting success. If text, layout, or style fails, revise one dimension and regenerate.
+11. Report the final prompt, selected references with source links, generated image path when generated, and any known limitations in the chosen output language.
+12. Ask whether the user wants to add this result to the local reference library. Only add it after explicit confirmation. If the user replies `1` after this yes/no question, treat that as confirmation.
 
 ## Self-Iteration Library
 
